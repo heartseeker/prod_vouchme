@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 // connect to mongoose
 // ==============================================
-mongoose.connect('mongodb://localhost/expressvouchme')
-// mongoose.connect('mongodb://vouchadmin:dbvouch123@ds221228.mlab.com:21228/vouchme')
+// mongoose.connect('mongodb://localhost/expressvouchme')
+mongoose.connect('mongodb+srv://alex:alex123456@m1075-nzfog.mongodb.net/vouchme')
 .then(() => {
     console.log('Connect to mongodb success!');
 })
