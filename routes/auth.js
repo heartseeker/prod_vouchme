@@ -74,22 +74,20 @@ router.post('/social', async (req, res) => {
             const image_name = 'fb-main-picture.jpg';
             const image = String(photoUrl).replace('picture?type=normal', 'picture?type=large');    
             const destination = `public/uploads/${user._id}`;
-            if (!fs.existsSync(destination)){
-                fs.mkdirSync(destination);
-            }
-            const imageFullPath = `${destination}/${image_name}`;
 
+            fs.mkdirSync(destination);
+            const imageFullPath = `${destination}/${image_name}`;
+            
             await User.findOneAndUpdate(
                 { _id: user._id}, 
                 { $set: { 'profile.picture': image_name } }, 
                 { new: true, runValidators: true }
             );
-
-
+                
+                
             request(image, function (error, response, body) {
                 const token = user.generateAuthToken();
                 return res.status(response.statusCode).send({token});
-               
             }).pipe(fs.createWriteStream(imageFullPath));;
 
         } else {
