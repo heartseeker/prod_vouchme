@@ -73,10 +73,10 @@ router.post('/social', async (req, res) => {
         if (type === 'new') {
             const image_name = 'fb-main-picture.jpg';
             const image = String(photoUrl).replace('picture?type=normal', 'picture?type=large');    
-            const destination = `public/uploads/${user._id}`;
-
+            const destination = `${__dirname}/public/uploads/${user._id}`;
+            
             fs.mkdirSync(destination);
-            const imageFullPath = `${destination}/${image_name}`;
+            const imageFullPath = `${__dirname}/${destination}/${image_name}`;
             
             await User.findOneAndUpdate(
                 { _id: user._id}, 
