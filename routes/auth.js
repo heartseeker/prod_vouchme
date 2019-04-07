@@ -95,6 +95,7 @@ router.post('/social', async (req, res) => {
                 const options = {
                     method: 'POST',
                     url: 'http://vouchme.online/upload.php',
+                    // url: 'http://localhost/upload.php',
                     json: true,
                     formData : {
                         'picture' : fs.createReadStream(imageFullPath),
