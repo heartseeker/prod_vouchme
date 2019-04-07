@@ -225,6 +225,34 @@ router.post('/avatar', [upload.array(), authenticate], function(req, res) {
 });
 
 
+// Upload ids, billing info data only
+router.post('/saveupload', authenticate , async function (req, res) {
+    const type = req.body.type;
+    const filename = req.body.filename;
+
+    let setImage;
+
+    switch (type) {
+        case 'id1':
+            setImage = 'profile.id1';
+            break;
+        case 'id2':
+            setImage = 'profile.id2';
+            break;
+        case 'billing':
+            setImage = 'profile.billing';
+            break;
+    }
+
+    await User.findOneAndUpdate(
+        { _id: req.user._id}, 
+        { $set: { [setImage]: filename } }, 
+        { new: true, runValidators: true }
+    );
+
+    return res.status(200).send({ status: 200 });
+});
+
 // Upload ids, billing info
 router.post('/upload', authenticate , async function (req, res) {
 

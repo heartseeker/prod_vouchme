@@ -60,20 +60,21 @@ router.post('/social', async (req, res) => {
     try {
         user = await User.findOne(_.pick(req.body, ['email']));
         if (!user) {
-            res.status(401).send({ status: 401,  message: 'Invalid email address / Not yet registered'});
-            return;
+            return res.status(401).send({ status: 401,  message: 'Invalid email address / Not yet registered'});
         };
+        console.log(' pasok! ');
     } catch (err) {
-        res.status(400).send(err);
+        console.log('error !!!!!');
+        return  res.status(400).send(err);
     }
 
     request(`https://graph.facebook.com/${userId}/permissions?access_token=${token}`, async function (error, response, body) {
 
         // save facebook image if new user
         if (type === 'new') {
-            const image_name = 'fb-main-picture.jpg';
+            const image_name = 'picture.jpg';
             const image = String(photoUrl).replace('picture?type=normal', 'picture?type=large');    
-            const destination = '../public/uploads/' + user._id;
+            const destination = 'public/uploads/' + user._id;
             
             fs.mkdirSync(destination);
             const imageFullPath = `${destination}/${image_name}`;
@@ -83,11 +84,29 @@ router.post('/social', async (req, res) => {
                 { $set: { 'profile.picture': image_name } }, 
                 { new: true, runValidators: true }
             );
-                
-                
+
+                            
             request(image, function (error, response, body) {
                 const token = user.generateAuthToken();
-                return res.status(response.statusCode).send({token});
+
+                const options = {
+                    method: 'POST',
+                    url: 'http://localhost/upload.php',
+                    json: true,
+                    formData : {
+                        'picture' : fs.createReadStream(imageFullPath),
+                        'user_id': user._id.toString()
+                    }
+                };
+
+                request(options, function (err, resp, body) {
+                    if (err) {
+                        return console.error('upload failed:', err);
+                    }
+                    return res.status(response.statusCode).send({token, body});
+                });
+
+
             }).pipe(fs.createWriteStream(imageFullPath));;
 
         } else {
@@ -97,7 +116,6 @@ router.post('/social', async (req, res) => {
             }
         }
 
-        // return res.status(response.statusCode).send(JSON.parse(body));
     });
 });
 
