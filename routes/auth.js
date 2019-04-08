@@ -75,9 +75,9 @@ router.post('/social', async (req, res) => {
             const image_name = 'picture.jpg';
             const image = String(photoUrl).replace('picture?type=normal', 'picture?type=large');    
             const destination = 'public/uploads/' + user._id;
-
-            if (!fs.existsSync(destination)){
-                fs.mkdirSync(destination);
+            
+            if (!fs.exists(destination)){
+                fs.mkdir(destination);
             }
             
             const imageFullPath = `${destination}/${image_name}`;
