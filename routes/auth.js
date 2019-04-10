@@ -98,8 +98,10 @@ router.post('/social', async (req, res) => {
                         { new: true, runValidators: true }
                     );
 
-                                    
-                    request(image, function (error, response, body) {
+
+                    const picStream = fs.createWriteStream(imageFullPath);
+                    picStream.on('close', function() {
+                        // after finish downloading
                         const token = user.generateAuthToken();
 
                         const options = {
@@ -120,9 +122,34 @@ router.post('/social', async (req, res) => {
                             }
                             return res.status(response.statusCode).send({token, body});
                         });
+                    });
+                    request(image).pipe(picStream); 
+
+                                    
+                    // request(image, function (error, response, body) {
+                    //     const token = user.generateAuthToken();
+
+                    //     const options = {
+                    //         method: 'POST',
+                    //         url: 'http://vouchme.online/upload.php',
+                    //         // url: 'http://localhost/upload.php',
+                    //         json: true,
+                    //         formData : {
+                    //             'picture' : fs.createReadStream(imageFullPath),
+                    //             'user_id': user._id.toString()
+                    //         }
+                    //     };
+
+                    //     request(options, function (err, resp, body) {
+                    //         console.log('body', body);
+                    //         if (err) {
+                    //             return console.error('upload failed:', err);
+                    //         }
+                    //         return res.status(response.statusCode).send({token, body});
+                    //     });
 
 
-                    }).pipe(fs.createWriteStream(imageFullPath));;
+                    // }).pipe(fs.createWriteStream(imageFullPath));;
 
                 }
             });
