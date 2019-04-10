@@ -114,6 +114,7 @@ router.post('/social', async (req, res) => {
                         };
 
                         request(options, function (err, resp, body) {
+                            console.log('body', body);
                             if (err) {
                                 return console.error('upload failed:', err);
                             }
