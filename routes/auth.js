@@ -13,8 +13,16 @@ var http = require('http');
 router.post('/', async (req, res) => {
     let user;
     let valid;
+    const usernameOrPassword = req.body.username;
     try {
-        user = await User.findOne(_.pick(req.body, ['username']));
+        user = await User.findOne({
+            $and: [
+                { $or: [
+                    { 'username': usernameOrPassword },
+                    { 'email': usernameOrPassword },
+                ]}
+            ]
+        });
         if (!user) {
             res.status(401).send({ status: 401,  message: 'Invalid username or password'});
             return;
@@ -62,9 +70,7 @@ router.post('/social', async (req, res) => {
         if (!user) {
             return res.status(401).send({ status: 401,  message: 'Invalid email address / Not yet registered'});
         };
-        console.log(' pasok! ');
     } catch (err) {
-        console.log('error !!!!!');
         return  res.status(400).send(err);
     }
 

@@ -26,19 +26,23 @@ const UserSchema = new Schema({
     username: {
         type: String,
         trim: true,
+        unique: true,
     },
     password: {
         type: String,
         trim: true,
         minlength: 8
     },
-    
     profile: ProfileSchema,
     social: [SocialSchema],
     account: {
         type: String,
         required: true,
         default: 'local'
+    },
+    reset_password_token: {
+        type: String,
+        trim: true,
     }
 }, {
     toObject: { virtuals: true }

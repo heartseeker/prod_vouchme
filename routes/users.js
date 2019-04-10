@@ -59,6 +59,32 @@ router.get('/search', authenticate, async (req, res) => {
     res.send(users);
 });
 
+router.get('/exists', async (req, res) => {
+
+    let type;
+    let value;
+
+    if (req.query.username) {
+        value  = req.query.username;
+        type = 'username';
+    }
+
+    if (req.query.email) {
+        value  = req.query.email;
+        type = 'email';
+    }
+
+    try {
+        user = await User.findOne({ [type]: value });
+        if (!user) {
+            return res.status(200).send();
+        };
+    } catch (err) {
+        return  res.status(400).send(err);
+    }
+
+    return res.status(400).send({ status: 400,  message: `Invalid ${type} / already registered`});
+});
 
 // search user in public
 router.get('/find', async (req, res) => {
@@ -76,14 +102,26 @@ router.get('/find', async (req, res) => {
             ]}
         ]
     })
-    .select('-password')
-    .limit(5);
+    .select('-password');
+    // .limit(5);
 
-    users.map(async(user, index, arr) => {
+    let promises = [];
+
+    promises = users.map(async(user, index, arr) => {
+
+        const t = await user.generateTransactions();
+        const v = await user.generateVouches();
+        const i = await user.generateInfames();
+
         response.push({
             user: user,
+            transactions: t,
+            vouches: v,
+            infames: i,
         })
     });
+
+    await Promise.all(promises);
 
     res.send(response);
 });
