@@ -7,7 +7,9 @@ const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 const fs = require('fs');
-var http = require('http');
+const http = require('http');
+const mkdirp = require('mkdirp');
+
 
 // authenticating a user
 router.post('/', async (req, res) => {
@@ -82,49 +84,47 @@ router.post('/social', async (req, res) => {
             const image = String(photoUrl).replace('picture?type=normal', 'picture?type=large');    
             const destination = 'public/uploads/' + user._id;
             
-            try {
-                if (!fs.existsSync(destination)){
-                    fs.mkdirSync(destination);
+            mkdirp(destination, async function (err) {
+                if (err) {
+                    console.error(err)
+                } 
+                else {
+
+                    const imageFullPath = `${destination}/${image_name}`;
+            
+                    await User.findOneAndUpdate(
+                        { _id: user._id}, 
+                        { $set: { 'profile.picture': image_name } }, 
+                        { new: true, runValidators: true }
+                    );
+
+                                    
+                    request(image, function (error, response, body) {
+                        const token = user.generateAuthToken();
+
+                        const options = {
+                            method: 'POST',
+                            url: 'http://vouchme.online/upload.php',
+                            // url: 'http://localhost/upload.php',
+                            json: true,
+                            formData : {
+                                'picture' : fs.createReadStream(imageFullPath),
+                                'user_id': user._id.toString()
+                            }
+                        };
+
+                        request(options, function (err, resp, body) {
+                            if (err) {
+                                return console.error('upload failed:', err);
+                            }
+                            return res.status(response.statusCode).send({token, body});
+                        });
+
+
+                    }).pipe(fs.createWriteStream(imageFullPath));;
+
                 }
-            } catch (err) {
-                return  res.status(400).send(err);
-            }
-
-            
-            
-            const imageFullPath = `${destination}/${image_name}`;
-            
-            await User.findOneAndUpdate(
-                { _id: user._id}, 
-                { $set: { 'profile.picture': image_name } }, 
-                { new: true, runValidators: true }
-            );
-
-                            
-            request(image, function (error, response, body) {
-                const token = user.generateAuthToken();
-
-                const options = {
-                    method: 'POST',
-                    url: 'http://vouchme.online/upload.php',
-                    // url: 'http://localhost/upload.php',
-                    json: true,
-                    formData : {
-                        'picture' : fs.createReadStream(imageFullPath),
-                        'user_id': user._id.toString()
-                    }
-                };
-
-                request(options, function (err, resp, body) {
-                    console.log('body ', body);
-                    if (err) {
-                        return console.error('upload failed:', err);
-                    }
-                    return res.status(response.statusCode).send({token, body});
-                });
-
-
-            }).pipe(fs.createWriteStream(imageFullPath));;
+            });
 
         } else {
             if (response.statusCode === 200) {
